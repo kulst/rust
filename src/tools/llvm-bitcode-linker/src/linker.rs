@@ -2,11 +2,10 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 
-use crate::{Optimization, Target};
+use crate::Optimization;
 
 #[derive(Debug)]
 pub struct Session {
-    target: Target,
     cpu: Option<String>,
     symbols: Vec<String>,
 
@@ -21,13 +20,12 @@ pub struct Session {
 }
 
 impl Session {
-    pub fn new(target: crate::Target, cpu: Option<String>, out_path: PathBuf) -> Self {
+    pub fn new(cpu: Option<String>, out_path: PathBuf) -> Self {
         let link_path = out_path.with_extension("o");
         let opt_path = out_path.with_extension("optimized.o");
         let sym_path = out_path.with_extension("symbols.txt");
 
         Session {
-            target,
             cpu,
             symbols: Vec::new(),
             files: Vec::new(),
@@ -79,14 +77,8 @@ impl Session {
     /// Optimize and compile to native format using `opt` and `llc`
     ///
     /// Before this can be called `link` needs to be called
-    fn optimize(&mut self, optimization: Optimization, mut debug: bool) -> anyhow::Result<()> {
+    fn optimize(&mut self, optimization: Optimization, debug: bool) -> anyhow::Result<()> {
         let mut passes = format!("default<{}>", optimization);
-
-        // FIXME(@kjetilkjeka) Debug symbol generation is broken for nvptx64 so we must remove them even in debug mode
-        if debug && self.target == crate::Target::Nvptx64NvidiaCuda {
-            tracing::warn!("nvptx64 target detected - stripping debug symbols");
-            debug = false;
-        }
 
         // We add an internalize pass as the rust compiler as we require exported symbols to be explicitly marked
         passes.push_str(",internalize,globaldce");

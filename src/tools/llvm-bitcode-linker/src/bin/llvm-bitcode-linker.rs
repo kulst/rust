@@ -49,7 +49,7 @@ fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
-    let mut linker = Session::new(args.target, args.target_cpu, args.output);
+    let mut linker = Session::new(args.target_cpu, args.output);
 
     linker.add_exported_symbols(args.export_symbol);
 
