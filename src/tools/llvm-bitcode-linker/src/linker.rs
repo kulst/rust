@@ -142,7 +142,7 @@ impl Session {
         }
 
         if let Some(mattr) = &self.feature {
-            lcc_command.arg("--mattr").arg(mattr);
+            lcc_command.arg(&format!("-mattr={}", mattr));
         }
 
         let lcc_output = lcc_command
