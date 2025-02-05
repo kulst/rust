@@ -1419,6 +1419,7 @@ symbols! {
         not,
         notable_trait,
         note,
+        nvptx64_target_feature,
         object_safe_for_dispatch,
         of,
         off,

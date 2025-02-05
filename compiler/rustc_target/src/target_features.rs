@@ -632,6 +632,38 @@ const M68K_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     // tidy-alphabetical-end
 ];
 
+const NVPTX64_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
+    // tidy-alphabetical-start
+    ("ptx32", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx40", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx41", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx42", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx43", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx50", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx60", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx61", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx62", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx63", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx64", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx65", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx70", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx71", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx72", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx73", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx74", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx75", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx76", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx77", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx78", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx80", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx81", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx82", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx83", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx84", Unstable(sym::nvptx64_target_feature), &[]),
+    ("ptx85", Unstable(sym::nvptx64_target_feature), &[]),
+    // tidy-alphabetical-end
+];
+
 /// When rustdoc is running, provide a list of all known features so that all their respective
 /// primitives may be documented.
 ///
@@ -652,6 +684,7 @@ pub fn all_rust_features() -> impl Iterator<Item = (&'static str, Stability)> {
         .chain(IBMZ_FEATURES)
         .chain(SPARC_FEATURES)
         .chain(M68K_FEATURES)
+        .chain(NVPTX64_FEATURES)
         .cloned()
         .map(|(f, s, _)| (f, s))
 }
@@ -706,6 +739,7 @@ impl Target {
             "s390x" => IBMZ_FEATURES,
             "sparc" | "sparc64" => SPARC_FEATURES,
             "m68k" => M68K_FEATURES,
+            "nvptx64" => NVPTX64_FEATURES,
             _ => &[],
         }
     }
