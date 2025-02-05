@@ -1,6 +1,6 @@
 [package]
 name = "llvm-bitcode-linker"
-version = "0.0.1"
+version = "0.0.2"
 description = "A self-contained linker for llvm bitcode"
 license = "MIT OR Apache-2.0"
 edition = "2021"
