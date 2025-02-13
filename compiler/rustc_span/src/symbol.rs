@@ -851,6 +851,7 @@ symbols! {
         dyn_star,
         dyn_trait,
         dynamic_no_pic: "dynamic-no-pic",
+        dynamic_shared_memory,
         e,
         edition_panic,
         effects,

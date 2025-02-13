@@ -3554,6 +3554,23 @@ pub const unsafe fn size_of_val<T: ?Sized>(ptr: *const T) -> usize;
 #[rustc_intrinsic_const_stable_indirect]
 pub const unsafe fn min_align_of_val<T: ?Sized>(ptr: *const T) -> usize;
 
+/// Returns a pointer to dynamic shared memory
+/// The return pointer is aligned by properly.
+/// All pointers returned by `dynamic_shared_memory` point to the same address,
+/// so alias the same memory.
+///
+/// # Other APIs
+///
+/// CUDA and HIP call this shared memory.
+/// OpenCL and SYCL call this local memory.
+#[cfg(not(bootstrap))]
+#[rustc_nounwind]
+#[unstable(feature = "dynamic_shared_memory", issue = "135513")]
+#[rustc_intrinsic]
+pub fn dynamic_shared_memory<T: ?Sized>() -> *mut T {
+    unreachable!()
+}
+
 /// Gets a static string slice containing the name of a type.
 ///
 /// Note that, unlike most intrinsics, this is safe to call;
