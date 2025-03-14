@@ -552,7 +552,7 @@ impl<'ll, 'tcx> IntrinsicCallBuilderMethods<'tcx> for Builder<'_, 'll, 'tcx> {
                 // TODO Allow only on nvptx and amdgpu
                 // TODO create only one global per module, take the maximum alignment of all calls
                 let global = self.declare_global_in_addrspace(
-                    "",
+                    "$_dynamic_shared_memory_$",
                     self.type_array(self.type_i8(), 0),
                     AddressSpace::SHARED,
                 );
@@ -567,6 +567,18 @@ impl<'ll, 'tcx> IntrinsicCallBuilderMethods<'tcx> for Builder<'_, 'll, 'tcx> {
                 self.cx().const_pointercast(global, self.type_ptr())
             }
 
+            sym::static_shared_memory => {
+                let ty::RawPtr(inner_ty, _) = ret_ty.kind() else { unreachable!() };
+                let be_ty = self.backend_type(self.layout_of(*inner_ty));
+                let global = self.declare_global_in_addrspace("", be_ty, AddressSpace::SHARED);
+                let alignment = self.align_of(*inner_ty).bytes() as u32;
+                unsafe {
+                    llvm::LLVMSetLinkage(global, llvm::Linkage::InternalLinkage);
+                    llvm::LLVMSetInitializer(global, self.const_null(be_ty));
+                    llvm::LLVMSetAlignment(global, alignment);
+                }
+                self.cx().const_pointercast(global, self.type_ptr())
+            }
             _ if name.as_str().starts_with("simd_") => {
                 // Unpack non-power-of-2 #[repr(packed, simd)] arguments.
                 // This gives them the expected layout of a regular #[repr(simd)] vector.

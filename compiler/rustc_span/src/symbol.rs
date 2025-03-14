@@ -1978,6 +1978,7 @@ symbols! {
         static_in_const,
         static_nobundle,
         static_recursion,
+        static_shared_memory,
         staticlib,
         std,
         std_panic,

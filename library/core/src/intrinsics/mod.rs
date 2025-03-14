@@ -3564,12 +3564,25 @@ pub const unsafe fn min_align_of_val<T: ?Sized>(ptr: *const T) -> usize;
 /// CUDA and HIP call this shared memory.
 /// OpenCL and SYCL call this local memory.
 #[cfg(not(bootstrap))]
+#[cfg(any(target_arch = "nvptx64", target_arch = "amdgpu"))]
 #[rustc_nounwind]
-#[unstable(feature = "dynamic_shared_memory", issue = "135513")]
+#[unstable(feature = "shared_memory", issue = "135516")]
 #[rustc_intrinsic]
-pub fn dynamic_shared_memory<T: ?Sized>() -> *mut T {
-    unreachable!()
-}
+pub fn dynamic_shared_memory<T: ?Sized>() -> *mut T;
+
+/// Creates a value of type `T` in static shared memory
+/// and returns a properly aligned pointer to it.
+///
+/// # Other APIs
+///
+/// CUDA and HIP call this shared memory.
+/// OpenCL and SYCL call this local memory.
+#[cfg(not(bootstrap))]
+#[cfg(any(target_arch = "nvptx64", target_arch = "amdgpu"))]
+#[rustc_nounwind]
+#[unstable(feature = "shared_memory", issue = "135516")]
+#[rustc_intrinsic]
+pub fn static_shared_memory<T>() -> *mut T;
 
 /// Gets a static string slice containing the name of a type.
 ///
