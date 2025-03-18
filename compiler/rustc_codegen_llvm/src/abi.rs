@@ -527,6 +527,21 @@ impl<'ll, 'tcx> FnAbiLlvmExt<'ll, 'tcx> for FnAbi<'tcx, Ty<'tcx>> {
             }
         }
 
+        // Convergent operations need special handling as some code transformations
+        // must not be performed without producing undefined behavior. For now we copy
+        // the solution Clang uses, even it is not sufficient: It applies the convergent
+        // attribute to every function and every caller when compiling for a target
+        // hat uses these operations.
+        // FIXME: As soon as a better solution is available in LLVM like using convergence
+        // control tokens we should switch to that.
+        if cx.tcx.sess.target.has_convergent_ops {
+            attributes::apply_to_llfn(
+                llfn,
+                llvm::AttributePlace::Function,
+                &[llvm::AttributeKind::Convergent.create_attr(cx.llcx)],
+            );
+        }
+
         // If the declaration has an associated instance, compute extra attributes based on that.
         if let Some(instance) = instance {
             llfn_attrs_from_instance(cx, llfn, instance);
@@ -633,6 +648,21 @@ impl<'ll, 'tcx> FnAbiLlvmExt<'ll, 'tcx> for FnAbi<'tcx, Ty<'tcx>> {
                 callsite,
                 llvm::AttributePlace::Function,
                 &[cmse_nonsecure_call],
+            );
+        }
+
+        // Convergent operations need special handling as some code transformations
+        // must not be performed without producing undefined behavior. For now we copy
+        // the solution Clang uses, even it is not sufficient: It applies the convergent
+        // attribute to every function and every caller when compiling for a target
+        // hat uses these operations.
+        // FIXME: As soon as a better solution is available in LLVM like using convergence
+        // control tokens we should switch to that.
+        if bx.tcx.sess.target.has_convergent_ops {
+            attributes::apply_to_callsite(
+                callsite,
+                llvm::AttributePlace::Function,
+                &[llvm::AttributeKind::Convergent.create_attr(bx.llcx)],
             );
         }
 

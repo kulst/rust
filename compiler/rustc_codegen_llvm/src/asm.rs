@@ -341,6 +341,16 @@ impl<'ll, 'tcx> AsmBuilderMethods<'tcx> for Builder<'_, 'll, 'tcx> {
         } else {
             // LLVM doesn't have an attribute to represent ReadOnly + SideEffect
         }
+        // Convergent operations need special handling as some code transformations
+        // must not be performed without producing undefined behavior. For now we copy
+        // the solution Clang uses, even it is not sufficient: It applies the convergent
+        // attribute to every function and every caller when compiling for a target
+        // hat uses these operations.
+        // FIXME: As soon as a better solution is available in LLVM like using convergence
+        // control tokens we should switch to that.
+        if self.tcx.sess.target.has_convergent_ops {
+            attrs.push(llvm::AttributeKind::Convergent.create_attr(self.cx.llcx));
+        }
         attributes::apply_to_callsite(result, llvm::AttributePlace::Function, &{ attrs });
 
         // Write results to outputs. We need to do this for all possible control flow.

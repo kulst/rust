@@ -277,6 +277,7 @@ enum class LLVMRustAttributeKind {
   FnRetThunkExtern = 41,
   Writable = 42,
   DeadOnUnwind = 43,
+  Convergent = 44,
 };
 
 static Attribute::AttrKind fromRust(LLVMRustAttributeKind Kind) {
@@ -369,6 +370,8 @@ static Attribute::AttrKind fromRust(LLVMRustAttributeKind Kind) {
     return Attribute::Writable;
   case LLVMRustAttributeKind::DeadOnUnwind:
     return Attribute::DeadOnUnwind;
+  case LLVMRustAttributeKind::Convergent:
+    return Attribute::Convergent;
   }
   report_fatal_error("bad LLVMRustAttributeKind");
 }

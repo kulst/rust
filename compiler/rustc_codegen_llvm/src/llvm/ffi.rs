@@ -236,6 +236,7 @@ pub enum AttributeKind {
     FnRetThunkExtern = 41,
     Writable = 42,
     DeadOnUnwind = 43,
+    Convergent = 44,
 }
 
 /// LLVMIntPredicate
