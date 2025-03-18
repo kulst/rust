@@ -62,7 +62,7 @@ const MAX_PLACES: usize = 100;
 
 impl<'tcx> crate::MirPass<'tcx> for JumpThreading {
     fn is_enabled(&self, sess: &rustc_session::Session) -> bool {
-        sess.mir_opt_level() >= 2
+        sess.mir_opt_level() >= 2 && !sess.target.has_convergent_ops
     }
 
     #[instrument(skip_all level = "debug")]
