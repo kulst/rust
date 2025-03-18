@@ -2532,6 +2532,9 @@ pub struct TargetOptions {
     /// This target has no support for threads.
     pub singlethread: bool,
 
+    /// This target uses convergent operations
+    pub has_convergent_ops: bool,
+
     /// Whether library functions call lowering/optimization is disabled in LLVM
     /// for this target unconditionally.
     pub no_builtins: bool,
@@ -2853,6 +2856,7 @@ impl Default for TargetOptions {
             trap_unreachable: true,
             requires_lto: false,
             singlethread: false,
+            has_convergent_ops: false,
             no_builtins: false,
             default_visibility: None,
             emit_debug_gdb_scripts: true,

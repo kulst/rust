@@ -45,6 +45,9 @@ pub(crate) fn target() -> Target {
             // Force LTO, object linking does not yet work with amdgpu.
             requires_lto: true,
 
+            // amdgpu supports and uses convergent operations like _syncthreads()
+            has_convergent_ops: true,
+
             ..Default::default()
         },
     }

@@ -58,6 +58,9 @@ pub(crate) fn target() -> Target {
             // Support using `self-contained` linkers like the llvm-bitcode-linker
             link_self_contained: LinkSelfContainedDefault::True,
 
+            // nvptx64 supports and uses convergent operations like _syncthreads()
+            has_convergent_ops: true,
+
             ..Default::default()
         },
     }
