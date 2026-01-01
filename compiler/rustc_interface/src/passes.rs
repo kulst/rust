@@ -1133,7 +1133,9 @@ fn run_required_analyses(tcx: TyCtxt<'_>) {
             }
         });
     });
-
+    if tcx.sess.target.options.static_initializer_must_be_acyclic {
+        tcx.ensure_ok().check_static_initializer_acyclic(());
+    }
     sess.time("layout_testing", || layout_test::test_layout(tcx));
     sess.time("abi_testing", || abi_test::test_abi(tcx));
 }

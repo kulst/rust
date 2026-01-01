@@ -258,6 +258,9 @@ rustc_queries! {
         desc { |tcx| "getting HIR parent of `{}`", tcx.def_path_str(key) }
     }
 
+    query check_static_initializer_acyclic(_: ()) -> Result<(), ErrorGuaranteed> {
+        desc { "checking that static initializers are acyclic" }
+    }
     /// Gives access to the HIR nodes and bodies inside `key` if it's a HIR owner.
     ///
     /// This can be conveniently accessed by `tcx.hir_*` methods.

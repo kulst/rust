@@ -15,6 +15,7 @@
 // tidy-alphabetical-end
 
 pub mod check_consts;
+mod check_static_initializer_acyclic;
 pub mod const_eval;
 mod errors;
 pub mod interpret;
@@ -48,6 +49,8 @@ pub fn provide(providers: &mut Providers) {
     };
     providers.hooks.validate_scalar_in_layout =
         |tcx, scalar, layout| util::validate_scalar_in_layout(tcx, scalar, layout);
+    providers.check_static_initializer_acyclic =
+        check_static_initializer_acyclic::check_static_initializer_acyclic;
 }
 
 /// `rustc_driver::main` installs a handler that will set this to `true` if
