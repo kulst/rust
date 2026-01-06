@@ -478,6 +478,7 @@ pub fn run_compiler<R: Send>(config: Config, f: impl FnOnce(&Compiler) -> R + Se
             }
             sess.lint_store = Some(Arc::new(lint_store));
 
+            util::check_target_cpu_constraints(&sess);
             util::check_abi_required_features(&sess);
 
             let compiler = Compiler {

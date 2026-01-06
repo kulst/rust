@@ -128,6 +128,20 @@ pub(crate) struct AbiRequiredTargetFeature<'a> {
 }
 
 #[derive(Diagnostic)]
+#[diag("`-Ctarget-cpu=native` is not allowed for target `{$target_triple}`")]
+#[note("this target requires consistent `-Ctarget-cpu` values across all crates")]
+#[help(
+    "specify the target CPU explicitly {$need_explicit_cpu ->
+        [0] or leave it blank to use the default
+        *[other] {\"\"}
+    }"
+)]
+pub(crate) struct NativeTargetCpuNotAllowed<'a> {
+    pub(crate) target_triple: &'a TargetTuple,
+    pub(crate) need_explicit_cpu: u8,
+}
+
+#[derive(Diagnostic)]
 #[diag("dropping unsupported crate type `{$crate_type}` for codegen backend `{$codegen_backend}`")]
 pub(crate) struct UnsupportedCrateTypeForCodegenBackend {
     pub(crate) crate_type: CrateType,

@@ -2372,6 +2372,10 @@ pub struct TargetOptions {
     /// Whether a cpu needs to be explicitly set.
     /// Set to true if there is no default cpu. Defaults to false.
     pub need_explicit_cpu: bool,
+    /// Whether `-Ctarget-cpu` is treated as a target modifier. If this is set
+    /// all crates that are linked together must have been compiled with the
+    /// same target-cpu. Defaults to false.
+    pub requires_consistent_cpu: bool,
     /// A list of CPUs that are provided by LLVM but are considered unsupported by Rust.
     /// These CPUs are omitted from `--print target-cpus` output and will cause an error
     /// if used with `-Ctarget-cpu`.
@@ -2825,6 +2829,7 @@ impl Default for TargetOptions {
             asm_args: cvs![],
             cpu: "generic".into(),
             need_explicit_cpu: false,
+            requires_consistent_cpu: false,
             unsupported_cpus: cvs![],
             features: "".into(),
             direct_access_external_data: None,

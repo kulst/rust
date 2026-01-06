@@ -102,6 +102,21 @@ pub(crate) fn check_abi_required_features(sess: &Session) {
     }
 }
 
+// Ensures that all target cpu constraints are upheld
+pub(crate) fn check_target_cpu_constraints(sess: &Session) {
+    // If `requires_consistent_cpu` is enabled, `-Ctarget-cpu` acts as a target
+    // modifier. To not accidentally link two crates built with different `native`
+    // cpus we reject `native` completely.
+    if sess.target.requires_consistent_cpu
+        && sess.opts.cg.target_cpu.as_deref().unwrap_or(sess.target.cpu.as_ref()) == "native"
+    {
+        sess.dcx().emit_fatal(diagnostics::NativeTargetCpuNotAllowed {
+            target_triple: &sess.opts.target_triple,
+            need_explicit_cpu: sess.target.need_explicit_cpu.into(),
+        });
+    }
+}
+
 pub static STACK_SIZE: OnceLock<usize> = OnceLock::new();
 pub const DEFAULT_STACK_SIZE: usize = 8 * 1024 * 1024;
 

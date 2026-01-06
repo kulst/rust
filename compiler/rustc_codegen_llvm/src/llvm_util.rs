@@ -514,7 +514,9 @@ fn print_target_cpus(sess: &Session, tm: &llvm::TargetMachine, out: &mut String)
 
     // Only print the "native" entry when host and target are the same arch,
     // since otherwise it could be wrong or misleading.
-    if sess.host.arch == sess.target.arch {
+    // Also do not print it if `requires_consistent_cpu` is set, because in this case
+    // "native" would be rejected.
+    if sess.host.arch == sess.target.arch && !sess.target.requires_consistent_cpu {
         let host = get_host_cpu_name();
         cpus.push_front(Cpu {
             cpu_name: "native",
