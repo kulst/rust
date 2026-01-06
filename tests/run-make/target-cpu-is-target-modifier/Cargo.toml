@@ -1,0 +1,14 @@
+# Convince cargo that this isn't part of an enclosing workspace.
+[workspace]
+
+[package]
+name = "rmake"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+run_make_support = { path = "../../../src/tools/run-make-support" }
+
+[[bin]]
+name = "rmake"
+path = "rmake.rs"
