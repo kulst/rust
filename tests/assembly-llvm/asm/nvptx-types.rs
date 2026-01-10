@@ -1,6 +1,6 @@
 //@ add-minicore
 //@ assembly-output: emit-asm
-//@ compile-flags: --target nvptx64-nvidia-cuda
+//@ compile-flags: --target nvptx64-nvidia-cuda -Ctarget-cpu=sm_30
 //@ needs-llvm-components: nvptx
 
 #![feature(no_core, asm_experimental_arch)]
