@@ -383,6 +383,7 @@ impl CStore {
                         flag_name,
                         flag_name_prefixed,
                         extern_value: extern_value.to_string(),
+                        value_len: extern_value.len(),
                     })
                 }
                 (Some(local_value), None) => {
@@ -393,6 +394,7 @@ impl CStore {
                         flag_name,
                         flag_name_prefixed,
                         local_value: local_value.to_string(),
+                        value_len: local_value.len(),
                     })
                 }
                 (None, None) => panic!("Incorrect target modifiers report_diff(None, None)"),
