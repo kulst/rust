@@ -155,7 +155,7 @@ impl WriteBackendMethods for LlvmCodegenBackend {
         let dcx = dcx.handle();
         back::lto::run_pass_manager(cgcx, &sess.prof, dcx, &mut module, false);
 
-        back::write::codegen(cgcx, &sess.prof, shared_emitter, module, &cgcx.module_config)
+        back::write::codegen(cgcx, &sess.prof, shared_emitter, module, &cgcx.module_config, true)
     }
     fn run_thin_lto(
         cgcx: &CodegenContext,
@@ -199,7 +199,7 @@ impl WriteBackendMethods for LlvmCodegenBackend {
         module: ModuleCodegen<Self::Module>,
         config: &ModuleConfig,
     ) -> CompiledModule {
-        back::write::codegen(cgcx, prof, shared_emitter, module, config)
+        back::write::codegen(cgcx, prof, shared_emitter, module, config, false)
     }
     fn serialize_module(module: Self::Module, is_thin: bool) -> Self::ModuleBuffer {
         back::lto::ModuleBuffer::new(module.llmod(), is_thin)

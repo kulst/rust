@@ -123,6 +123,7 @@ impl Target {
         forward!(dll_tls_export);
         forward!(only_cdylib);
         forward!(executables);
+        forward!(executable_is_asm);
         forward!(relocation_model);
         forward_opt!(code_model);
         forward!(tls_model);
@@ -185,6 +186,7 @@ impl Target {
         forward_opt!(default_codegen_backend);
         forward!(trap_unreachable);
         forward!(requires_lto);
+        forward!(lto_replaces_linking);
         forward!(singlethread);
         forward!(no_builtins);
         forward_opt!(default_visibility);
@@ -327,6 +329,7 @@ impl ToJson for Target {
         target_option_val!(dll_tls_export);
         target_option_val!(only_cdylib);
         target_option_val!(executables);
+        target_option_val!(executable_is_asm);
         target_option_val!(relocation_model);
         target_option_val!(code_model);
         target_option_val!(tls_model);
@@ -376,6 +379,7 @@ impl ToJson for Target {
         target_option_val!(default_codegen_backend);
         target_option_val!(trap_unreachable);
         target_option_val!(requires_lto);
+        target_option_val!(lto_replaces_linking);
         target_option_val!(singlethread);
         target_option_val!(no_builtins);
         target_option_val!(default_visibility);
@@ -550,6 +554,7 @@ struct TargetSpecJson {
     dll_tls_export: Option<bool>,
     only_cdylib: Option<bool>,
     executables: Option<bool>,
+    executable_is_asm: Option<bool>,
     relocation_model: Option<RelocModel>,
     code_model: Option<CodeModel>,
     tls_model: Option<TlsModel>,
@@ -598,6 +603,7 @@ struct TargetSpecJson {
     default_codegen_backend: Option<StaticCow<str>>,
     trap_unreachable: Option<bool>,
     requires_lto: Option<bool>,
+    lto_replaces_linking: Option<bool>,
     singlethread: Option<bool>,
     no_builtins: Option<bool>,
     default_visibility: Option<SymbolVisibility>,

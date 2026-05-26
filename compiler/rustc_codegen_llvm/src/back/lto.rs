@@ -779,7 +779,7 @@ pub(crate) fn optimize_and_codegen_thin_module(
             save_temp_bitcode(cgcx, &module, "thin-lto-after-pm");
         }
     }
-    codegen(cgcx, prof, shared_emitter, module, &cgcx.module_config)
+    codegen(cgcx, prof, shared_emitter, module, &cgcx.module_config, false)
 }
 
 /// Maps LLVM module identifiers to their corresponding LLVM LTO cache keys

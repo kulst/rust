@@ -971,6 +971,7 @@ pub(crate) fn codegen(
     shared_emitter: &SharedEmitter,
     module: ModuleCodegen<ModuleLlvm>,
     config: &ModuleConfig,
+    is_post_fat_lto_codegen: bool,
 ) -> CompiledModule {
     let _timer = prof.generic_activity_with_arg("LLVM_module_codegen", &*module.name);
 
@@ -1092,6 +1093,7 @@ pub(crate) fn codegen(
             } else {
                 llmod
             };
+
             write_output_file(
                 dcx,
                 tm.raw(),
@@ -1105,8 +1107,8 @@ pub(crate) fn codegen(
             );
         }
 
-        match config.emit_obj {
-            EmitObj::ObjectCode(_) => {
+        match (cgcx.fat_lto_replaces_linking, is_post_fat_lto_codegen, config.emit_obj) {
+            (_, _, EmitObj::ObjectCode(_)) | (true, true, EmitObj::Bitcode) => {
                 let _timer =
                     prof.generic_activity_with_arg("LLVM_module_codegen_emit_obj", &*module.name);
 
@@ -1125,6 +1127,11 @@ pub(crate) fn codegen(
                     (_, SplitDwarfKind::Split) => Some(dwo_out.as_path()),
                 };
 
+                let file_type = if cgcx.executable_is_asm {
+                    llvm::FileType::AssemblyFile
+                } else {
+                    llvm::FileType::ObjectFile
+                };
                 write_output_file(
                     dcx,
                     tm.raw(),
@@ -1132,13 +1139,13 @@ pub(crate) fn codegen(
                     llmod,
                     &obj_out,
                     dwo_out,
-                    llvm::FileType::ObjectFile,
+                    file_type,
                     prof,
                     config.verify_llvm_ir,
                 );
             }
 
-            EmitObj::Bitcode => {
+            (_, _, EmitObj::Bitcode) => {
                 debug!("copying bitcode {:?} to obj {:?}", bc_out, obj_out);
                 if let Err(err) = link_or_copy(&bc_out, &obj_out) {
                     dcx.emit_err(CopyBitcode { err });
@@ -1150,7 +1157,7 @@ pub(crate) fn codegen(
                 }
             }
 
-            EmitObj::None => {}
+            (_, _, EmitObj::None) => {}
         }
 
         record_llvm_cgu_instructions_stats(prof, &module.name, llmod);

@@ -140,17 +140,19 @@ pub fn link_binary(
                     );
                 }
                 _ => {
-                    link_natively(
-                        sess,
-                        archive_builder_builder,
-                        crate_type,
-                        &out_filename,
-                        &compiled_modules,
-                        &crate_info,
-                        &metadata,
-                        path.as_ref(),
-                        codegen_backend,
-                    );
+                    if !(sess.target.lto_replaces_linking && sess.lto() == config::Lto::Fat) {
+                        link_natively(
+                            sess,
+                            archive_builder_builder,
+                            crate_type,
+                            &out_filename,
+                            &compiled_modules,
+                            &crate_info,
+                            &metadata,
+                            path.as_ref(),
+                            codegen_backend,
+                        );
+                    }
                 }
             }
             if sess.opts.json_artifact_notifications {

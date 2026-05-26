@@ -1,6 +1,6 @@
 use crate::spec::{
-    Arch, LinkSelfContainedDefault, LinkerFlavor, MergeFunctions, Os, PanicStrategy, Target,
-    TargetMetadata, TargetOptions, cvs,
+    Arch, Cc, LinkerFlavor, Lld, MergeFunctions, Os, PanicStrategy, Target, TargetMetadata,
+    TargetOptions, cvs,
 };
 
 pub(crate) fn target() -> Target {
@@ -19,7 +19,8 @@ pub(crate) fn target() -> Target {
         options: TargetOptions {
             os: Os::Cuda,
             vendor: "nvidia".into(),
-            linker_flavor: LinkerFlavor::Llbc,
+            linker_flavor: LinkerFlavor::Gnu(Cc::No, Lld::Yes),
+            linker: Some("rust-lld".into()),
 
             // With `ptx-linker` approach, it can be later overridden via link flags.
             cpu: "sm_70".into(),
@@ -62,11 +63,13 @@ pub(crate) fn target() -> Target {
             // The LLVM backend does not support stack canaries for this target
             supports_stack_protector: false,
 
-            // Support using `self-contained` linkers like the llvm-bitcode-linker
-            link_self_contained: LinkSelfContainedDefault::True,
-
+            // Force LTO, object linking does not yet work with amdgpu.
+            requires_lto: true,
             // Static initializers must not have cycles on this target
             static_initializer_must_be_acyclic: true,
+
+            executable_is_asm: true,
+            lto_replaces_linking: true,
 
             ..Default::default()
         },

@@ -341,6 +341,8 @@ pub struct CodegenContext {
     pub split_debuginfo: rustc_target::spec::SplitDebuginfo,
     pub split_dwarf_kind: rustc_session::config::SplitDwarfKind,
     pub pointer_size: Size,
+    pub fat_lto_replaces_linking: bool,
+    pub executable_is_asm: bool,
 
     /// LLVM optimizations for which we want to print remarks.
     pub remark: Passes,
@@ -1279,6 +1281,8 @@ fn start_executing_work<B: ExtraBackendMethods>(
         split_dwarf_kind: tcx.sess.opts.unstable_opts.split_dwarf_kind,
         parallel: backend.supports_parallel() && !sess.opts.unstable_opts.no_parallel_backend,
         pointer_size: tcx.data_layout.pointer_size(),
+        fat_lto_replaces_linking: tcx.sess.target.lto_replaces_linking,
+        executable_is_asm: tcx.sess.target.executable_is_asm,
     };
 
     // This is the "main loop" of parallel work happening for parallel codegen.

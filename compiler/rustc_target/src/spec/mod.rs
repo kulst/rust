@@ -2409,6 +2409,8 @@ pub struct TargetOptions {
     pub only_cdylib: bool,
     /// Whether executables are available on this target. Defaults to true.
     pub executables: bool,
+    /// Whether executables are assembly files on this target.
+    pub executable_is_asm: bool,
     /// Relocation model to use in object file. Corresponds to `llc
     /// -relocation-model=$relocation_model`. Defaults to `Pic`.
     pub relocation_model: RelocModel,
@@ -2572,6 +2574,9 @@ pub struct TargetOptions {
     /// This target requires everything to be compiled with LTO to emit a final
     /// executable, aka there is no native linker for this target.
     pub requires_lto: bool,
+    /// When fat lto is applied the last codegen step of fat lto already emits
+    /// code for this target. So no further linking is required.
+    pub lto_replaces_linking: bool,
 
     /// This target has no support for threads.
     pub singlethread: bool,
@@ -2847,6 +2852,7 @@ impl Default for TargetOptions {
             dll_tls_export: true,
             only_cdylib: false,
             executables: true,
+            executable_is_asm: false,
             relocation_model: RelocModel::Pic,
             code_model: None,
             tls_model: TlsModel::GeneralDynamic,
@@ -2913,6 +2919,7 @@ impl Default for TargetOptions {
             default_codegen_backend: None,
             trap_unreachable: true,
             requires_lto: false,
+            lto_replaces_linking: false,
             singlethread: false,
             no_builtins: false,
             default_visibility: None,
