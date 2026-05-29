@@ -913,7 +913,10 @@ impl<'a> Linker for GccLinker<'a> {
     fn linker_plugin_lto(&mut self) {
         match self.sess.opts.cg.linker_plugin_lto {
             LinkerPluginLto::Disabled => {
-                // Nothing to do
+                // if the target's object code is bitcode, we need lto even if not set explicitly
+                if self.sess.target.obj_is_bitcode {
+                    self.push_linker_plugin_lto_args(None);
+                }
             }
             LinkerPluginLto::LinkerPluginAuto => {
                 self.push_linker_plugin_lto_args(None);

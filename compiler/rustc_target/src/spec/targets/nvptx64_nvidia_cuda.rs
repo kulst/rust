@@ -42,6 +42,7 @@ pub(crate) fn target() -> Target {
             // Avoid using dylib because it contain metadata not supported
             // by LLVM NVPTX backend.
             only_cdylib: true,
+            executables: false,
 
             // Let the `ptx-linker` to handle LLVM lowering into MC / assembly.
             obj_is_bitcode: true,
@@ -64,6 +65,9 @@ pub(crate) fn target() -> Target {
 
             // Support using `self-contained` linkers like the llvm-bitcode-linker
             link_self_contained: LinkSelfContainedDefault::True,
+
+            // Nvptx requires lto as bitcode is linked
+            requires_lto: true,
 
             // Static initializers must not have cycles on this target
             static_initializer_must_be_acyclic: true,

@@ -121,6 +121,14 @@ pub(crate) struct CopyPathBuf {
     pub error: Error,
 }
 
+#[derive(Diagnostic)]
+#[diag("unable to rename {$source_file} to {$output_path}: {$error}")]
+pub(crate) struct RenamePathBuf {
+    pub source_file: PathBuf,
+    pub output_path: PathBuf,
+    pub error: Error,
+}
+
 // Reports Paths using `Debug` implementation rather than Path's `Display` implementation.
 #[derive(Diagnostic)]
 #[diag("could not copy {$from} to {$to}: {$error}")]

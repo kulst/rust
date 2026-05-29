@@ -47,7 +47,7 @@ use rustc_session::{Session, filesearch};
 use rustc_span::Symbol;
 use rustc_target::spec::crt_objects::CrtObjects;
 use rustc_target::spec::{
-    BinaryFormat, Cc, CfgAbi, Env, LinkOutputKind, LinkSelfContainedComponents,
+    Arch, BinaryFormat, Cc, CfgAbi, Env, LinkOutputKind, LinkSelfContainedComponents,
     LinkSelfContainedDefault, LinkerFeatures, LinkerFlavor, LinkerFlavorCli, Lld, Os, RelocModel,
     RelroLevel, SanitizerSet, SplitDebuginfo,
 };
@@ -1139,6 +1139,20 @@ fn link_natively(
             }
             err.raise_fatal();
         }
+    }
+
+    // Compiling for nvptx with lld uses the --lto-emit-asm linker flag.
+    // This flag automatically appends .lto.s to the resulting output file.
+    // We remove the extension to produce the expected filename.
+    if sess.target.arch == Arch::Nvptx64 && matches!(flavor, LinkerFlavor::Gnu(Cc::No, Lld::Yes)) {
+        let temp_filename = out_filename.with_added_extension("lto.s");
+        fs::rename(&temp_filename, out_filename).unwrap_or_else(|error| {
+            sess.dcx().emit_err(errors::RenamePathBuf {
+                source_file: temp_filename,
+                output_path: out_filename.to_path_buf(),
+                error,
+            });
+        })
     }
 
     match sess.split_debuginfo() {
@@ -2774,6 +2788,22 @@ fn add_order_independent_options(
         {
             cmd.link_args(&["--cpu-features", feat]);
         }
+    } else if sess.target.arch == Arch::Nvptx64
+        && matches!(flavor, LinkerFlavor::Gnu(Cc::No, Lld::Yes))
+    {
+        if crate_info.target_features.len() > 0 {
+            cmd.link_arg(&format!("--plugin-opt=-mattr={}", &crate_info.target_features.join(",")));
+        }
+        cmd.link_arg("--lto-emit-asm");
+        let opt_level = match sess.opts.optimize {
+            config::OptLevel::No => "O0",
+            config::OptLevel::Less => "O1",
+            config::OptLevel::More => "O2",
+            config::OptLevel::Aggressive => "O3",
+            config::OptLevel::Size => "Os",
+            config::OptLevel::SizeMin => "Oz",
+        };
+        cmd.link_arg(&format!("--lto-newpm-passes=default<{}>,globaldce", opt_level));
     }
 
     cmd.linker_plugin_lto();
@@ -3196,8 +3226,12 @@ fn add_static_crate(
     let mut link_upstream =
         |path: &Path| cmd.link_staticlib_by_path(&rehome_lib_path(sess, path), false);
 
-    if !are_upstream_rust_objects_already_included(sess) || ignored_for_lto(sess, crate_info, cnum)
-    {
+    let crate_participated_in_rustc_lto = are_upstream_rust_objects_already_included(sess)
+        && !ignored_for_lto(sess, crate_info, cnum);
+
+    let needs_rlib_metadata_stripping = sess.target.obj_is_bitcode;
+
+    if !crate_participated_in_rustc_lto && !needs_rlib_metadata_stripping {
         link_upstream(cratepath);
         return;
     }
@@ -3208,10 +3242,6 @@ fn add_static_crate(
     let bundled_lib_file_names = bundled_lib_file_names.clone();
 
     sess.prof.generic_activity_with_arg("link_altering_rlib", name).run(|| {
-        let upstream_rust_objects_already_included =
-            are_upstream_rust_objects_already_included(sess);
-        let is_builtins = sess.target.no_builtins || !crate_info.is_no_builtins.contains(&cnum);
-
         let mut archive = archive_builder_builder.new_archive_builder(sess);
         if let Err(error) = archive.add_archive(
             cratepath,
@@ -3227,7 +3257,7 @@ fn add_static_crate(
                 // file, then we don't need the object file as it's part of the
                 // LTO module. Note that `#![no_builtins]` is excluded from LTO,
                 // though, so we let that object file slide.
-                if upstream_rust_objects_already_included && is_rust_object && is_builtins {
+                if crate_participated_in_rustc_lto && is_rust_object {
                     return true;
                 }
 

@@ -336,7 +336,10 @@ impl LinkerFlavor {
             LinkerFlavor::WasmLld(cc) => LinkerFlavor::WasmLld(cc_hint.unwrap_or(cc)),
             LinkerFlavor::Unix(cc) => LinkerFlavor::Unix(cc_hint.unwrap_or(cc)),
             LinkerFlavor::Msvc(lld) => LinkerFlavor::Msvc(lld_hint.unwrap_or(lld)),
-            LinkerFlavor::EmCc | LinkerFlavor::Bpf | LinkerFlavor::Llbc | LinkerFlavor::Ptx => self,
+            LinkerFlavor::Llbc => {
+                LinkerFlavor::Gnu(cc_hint.unwrap_or(Cc::No), lld_hint.unwrap_or(Lld::Yes))
+            }
+            LinkerFlavor::EmCc | LinkerFlavor::Bpf | LinkerFlavor::Ptx => self,
         }
     }
 
@@ -367,6 +370,7 @@ impl LinkerFlavor {
                 | (LinkerFlavor::Ptx, LinkerFlavorCli::Ptx) => return true,
                 // 2. The linker flavor is independent of target and compatible
                 (LinkerFlavor::Ptx, LinkerFlavorCli::Llbc) => return true,
+                (LinkerFlavor::Llbc, LinkerFlavorCli::Lld(LldFlavor::Ld)) => return true,
                 _ => {}
             }
 
