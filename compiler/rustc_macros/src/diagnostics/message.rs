@@ -137,6 +137,7 @@ const ALLOWED_CAPITALIZED_WORDS: &[&str] = &[
     "MIR",
     "NaNs",
     "OK",
+    "PTX",
     "Rust",
     "ThinLTO",
     "Unicode",

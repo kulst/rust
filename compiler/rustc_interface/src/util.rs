@@ -31,6 +31,7 @@ use rustc_span::source_map::SourceMapInputs;
 use rustc_span::{SessionGlobals, Symbol, sym};
 use rustc_structures::CrateType;
 use rustc_target::spec::{Arch, Target};
+use rustc_target::target_features::nvptx_isa_version;
 use tracing::info;
 
 use crate::diagnostics;
@@ -68,6 +69,23 @@ pub(crate) fn add_configuration(
             .filter(|feature| target_config.internal_target_features.contains(&feature))
             .map(|feature| (sym::target_feature, Some(feature))),
     );
+    if is_nightly_build && target.arch == Arch::Nvptx64 {
+        for &(name, _, _) in target.rust_target_features() {
+            if !target_config.internal_target_features.contains(&Symbol::intern(name)) {
+                continue;
+            }
+            let cfg_name = if name.starts_with("sm_") {
+                sym::target_has_compute_capability
+            } else if name.starts_with("ptx") {
+                sym::target_has_ptx_version
+            } else {
+                continue;
+            };
+            if let Some(version) = nvptx_isa_version(name) {
+                cfg.insert((cfg_name, Some(Symbol::intern(&version))));
+            }
+        }
+    }
 
     if target_config.has_reliable_f16 {
         cfg.insert((sym::target_has_reliable_f16, None));

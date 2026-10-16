@@ -442,12 +442,6 @@ pub fn target_spec_to_backend_features<'a>(
     sess: &'a EarlySession,
     mut extend_backend_features: impl FnMut(&'a str, /* enable */ bool),
 ) {
-    let cpu = sess.opts.cg.target_cpu.as_deref().unwrap_or(&sess.target.cpu);
-
-    for &feature in sess.target.additional_features_for_cpu(cpu) {
-        extend_backend_features(feature, true);
-    }
-
     // Compute implied features
     parse_rust_feature_list(
         &sess.target,

@@ -1,0 +1,2 @@
+error: PTX version 7.7 is incompatible with `-Ctarget-cpu=sm_90` (requires PTX 7.8 or newer)
+

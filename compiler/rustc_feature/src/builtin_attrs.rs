@@ -56,6 +56,8 @@ const GATED_CFGS: &[GatedCfg] = &[
         Features::cfg_target_has_reliable_f16_f128,
     ),
     (sym::target_has_threads, sym::cfg_target_has_threads, Features::cfg_target_has_threads),
+    (sym::target_has_compute_capability, sym::nvptx_isa_cfg, Features::nvptx_isa_cfg),
+    (sym::target_has_ptx_version, sym::nvptx_isa_cfg, Features::nvptx_isa_cfg),
     (sym::target_object_format, sym::cfg_target_object_format, Features::cfg_target_object_format),
 ];
 

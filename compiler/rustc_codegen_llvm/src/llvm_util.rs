@@ -16,9 +16,12 @@ use rustc_data_structures::small_c_str::SmallCStr;
 use rustc_fs_util::path_to_c_string;
 use rustc_session::config::{NATIVE_CPU, PrintKind, PrintRequest};
 use rustc_session::{EarlySession, Session};
-use rustc_span::{bug, sym};
+use rustc_span::{Symbol, bug, sym};
 use rustc_target::spec::{
     Arch, CfgAbi, Env, MergeFunctions, Os, PanicStrategy, SmallDataThresholdSupport, Target,
+};
+use rustc_target::target_features::{
+    minimum_ptx_version_by_cpu, nvptx_isa_features, nvptx_isa_version, nvptx_ptx_feature,
 };
 use smallvec::{SmallVec, smallvec};
 
@@ -325,6 +328,7 @@ pub(crate) fn to_llvm_features<'a>(target: &Target, s: &'a str) -> Option<LLVMFe
 /// We do not have to worry about RUSTC_SPECIFIC_FEATURES here, those are handled outside codegen.
 pub(crate) fn target_config(sess: &EarlySession) -> TargetConfig {
     require_inited();
+
     let target_features = global_llvm_features(sess, /* for_cfg */ true);
 
     let triple = SmallCStr::new(&versioned_llvm_target(sess));
@@ -354,6 +358,7 @@ pub(crate) fn target_config(sess: &EarlySession) -> TargetConfig {
             }
         },
     );
+    validate_nvptx_ptx_cfg_features(sess, &internal_target_features);
 
     let mut cfg = TargetConfig {
         internal_target_features,
@@ -678,6 +683,8 @@ fn llvm_features_by_flags(sess: &EarlySession, features: &mut Vec<String>) {
             features.push("+reserve-x18".into());
         }
     }
+
+    nvptx_ptx_version_by_flags(sess, features);
 }
 
 /// The list of LLVM features computed from CLI flags (`-Ctarget-cpu`, `-Ctarget-feature`,
@@ -808,4 +815,87 @@ pub(crate) fn target_has_mnemonic(sess: &Session, mnemonic: &str) -> bool {
     let tm = create_informational_target_machine(sess);
     let cstr = SmallCStr::new(mnemonic);
     unsafe { llvm::LLVMRustTargetHasMnemonic(tm.raw(), cstr.as_ptr()) }
+}
+
+fn validate_nvptx_ptx_cfg_features(
+    sess: &EarlySession,
+    internal_target_features: &rustc_data_structures::unord::UnordSet<Symbol>,
+) {
+    if sess.target.arch != Arch::Nvptx64 {
+        return;
+    }
+
+    for feature in nvptx_isa_features().filter(|feature| feature.starts_with("ptx")) {
+        if !internal_target_features.contains(&Symbol::intern(feature)) {
+            continue;
+        }
+
+        match to_llvm_features(&sess.target, feature) {
+            Some(mapped)
+                if mapped.llvm_feature_name == feature && mapped.dependencies.is_empty() => {}
+
+            Some(mapped) => {
+                sess.dcx().emit_fatal(diagnostics::PtxVersionRemapped {
+                    feature: feature.to_owned(),
+                    llvm_feature: mapped.llvm_feature_name.to_owned(),
+                });
+            }
+
+            None => {
+                sess.dcx().emit_fatal(diagnostics::PtxVersionUnsupportedByLlvm {
+                    version: nvptx_isa_version(feature).unwrap(),
+                    llvm_major: get_version().0,
+                });
+            }
+        }
+    }
+}
+
+fn nvptx_ptx_version_by_flags(sess: &EarlySession, features: &mut Vec<String>) {
+    let requested = sess.opts.unstable_opts.ptx_version.as_deref();
+
+    if sess.target.arch != Arch::Nvptx64 {
+        if requested.is_some() {
+            sess.dcx().emit_fatal(diagnostics::PtxVersionInvalidArch);
+        }
+        return;
+    }
+
+    let cpu = target_cpu(sess);
+    let minimum = minimum_ptx_version_by_cpu(cpu);
+    let selected = requested
+        .map(|version| nvptx_ptx_feature(version).expect("validated while parsing -Zptx-version"))
+        .unwrap_or(minimum);
+
+    // PTX feature names encode their versions numerically.
+    let number = |feature: &str| -> u32 { feature.strip_prefix("ptx").unwrap().parse().unwrap() };
+
+    if number(selected) < number(minimum) {
+        sess.dcx().emit_fatal(diagnostics::PtxVersionTooLow {
+            version: requested.unwrap().to_owned(),
+            cpu: cpu.to_owned(),
+            minimum: nvptx_isa_version(minimum).unwrap(),
+        });
+    }
+
+    // Ensure LLVM supports the selected PTX version without remapping it.
+    match to_llvm_features(&sess.target, selected) {
+        Some(mapped) if mapped.llvm_feature_name == selected && mapped.dependencies.is_empty() => {}
+
+        Some(mapped) => {
+            sess.dcx().emit_fatal(diagnostics::PtxVersionRemapped {
+                feature: selected.to_owned(),
+                llvm_feature: mapped.llvm_feature_name.to_owned(),
+            });
+        }
+
+        None => {
+            sess.dcx().emit_fatal(diagnostics::PtxVersionUnsupportedByLlvm {
+                version: nvptx_isa_version(selected).unwrap(),
+                llvm_major: get_version().0,
+            });
+        }
+    }
+
+    features.push(format!("+{selected}"));
 }

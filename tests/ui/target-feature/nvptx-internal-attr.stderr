@@ -1,0 +1,14 @@
+error: target feature `sm_90` cannot be enabled with `#[target_feature]`: select the compute capability with `-Ctarget-cpu`
+  --> $DIR/nvptx-internal-attr.rs:12:18
+   |
+LL | #[target_feature(enable = "sm_90")]
+   |                  ^^^^^^^^^^^^^^^^
+
+error: target feature `ptx90` cannot be enabled with `#[target_feature]`: select the PTX version with `-Zptx-version`
+  --> $DIR/nvptx-internal-attr.rs:16:18
+   |
+LL | #[target_feature(enable = "ptx90")]
+   |                  ^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+

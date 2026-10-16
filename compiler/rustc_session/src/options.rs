@@ -173,6 +173,26 @@ mod target_modifier_consistency_check {
         };
         l_tech_value == r_tech_value
     }
+
+    pub(super) fn ptx_version(
+        sess: &Session,
+        l: &TargetModifier,
+        r: Option<&TargetModifier>,
+    ) -> bool {
+        match r {
+            Some(r) => l.value_name == r.value_name,
+            None => {
+                // Compare an explicit PTX version against the implicit version
+                // selected by the target CPU.
+                let cpu = sess.opts.cg.target_cpu.as_deref().unwrap_or(&sess.target.cpu);
+                let minimum = rustc_target::target_features::minimum_ptx_version_by_cpu(cpu);
+                let implicit = rustc_target::target_features::nvptx_isa_version(minimum)
+                    .expect("minimum PTX version must be valid");
+
+                l.value_name == implicit
+            }
+        }
+    }
 }
 
 impl TargetModifier {
@@ -197,6 +217,9 @@ impl TargetModifier {
                     return target_modifier_consistency_check::sanitizer_cfi_minimal_runtime(
                         sess, self, other,
                     );
+                }
+                UnstableOptionsTargetModifiers::PtxVersion => {
+                    return target_modifier_consistency_check::ptx_version(sess, self, other);
                 }
                 _ => {}
             },
@@ -834,6 +857,7 @@ mod desc {
         "one of: `y`, `yes`, `on`, `true`, `n`, `no`, `off` or `false`";
     pub(crate) const parse_opt_bool: &str = parse_bool;
     pub(crate) const parse_string: &str = "a string";
+    pub(crate) const parse_ptx_version: &str = "a supported PTX ISA version (7.0 to 9.3)";
     pub(crate) const parse_opt_string: &str = parse_string;
     pub(crate) const parse_string_push: &str = parse_string;
     pub(crate) const parse_opt_pathbuf: &str = "a path";
@@ -1058,6 +1082,17 @@ pub mod parse {
                 true
             }
             None => false,
+        }
+    }
+
+    pub(crate) fn parse_ptx_version(slot: &mut Option<String>, v: Option<&str>) -> bool {
+        if let Some(version) = v
+            && rustc_target::target_features::nvptx_ptx_feature(version).is_some()
+        {
+            *slot = Some(version.to_owned());
+            true
+        } else {
+            false
         }
     }
 
@@ -2810,6 +2845,8 @@ options! {
         "profile size of closures"),
     profiler_runtime: String = (String::from("profiler_builtins"), parse_string, [TRACKED],
         "name of the profiler runtime crate to automatically inject (default: `profiler_builtins`)"),
+    ptx_version: Option<String> = (None, parse_ptx_version, [TRACKED] { TARGET_MODIFIER: PtxVersion },
+        "select the PTX ISA version for NVPTX (e.g. 9.0); must meet the target CPU's minimum"),
     query_dep_graph: bool = (false, parse_bool, [UNTRACKED],
         "enable queries of the dependency graph for regression testing (default: no)"),
     randomize_layout: bool = (false, parse_bool, [TRACKED],

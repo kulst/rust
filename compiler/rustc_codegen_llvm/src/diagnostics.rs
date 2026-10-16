@@ -280,3 +280,33 @@ pub(crate) struct LlvmVersionMismatch<'a> {
     pub llvm_patch: c_uint,
     pub dll_loc: &'a str,
 }
+
+#[derive(Diagnostic)]
+#[diag("`-Zptx-version` is only supported for the nvptx64 target")]
+pub(crate) struct PtxVersionInvalidArch;
+
+#[derive(Diagnostic)]
+#[diag(
+    "PTX version {$version} is incompatible with `-Ctarget-cpu={$cpu}` (requires PTX {$minimum} or newer)"
+)]
+pub(crate) struct PtxVersionTooLow {
+    pub version: String,
+    pub cpu: String,
+    pub minimum: String,
+}
+
+#[derive(Diagnostic)]
+#[diag("PTX version {$version} is not supported by LLVM {$llvm_major}")]
+pub(crate) struct PtxVersionUnsupportedByLlvm {
+    pub version: String,
+    pub llvm_major: u32,
+}
+
+#[derive(Diagnostic)]
+#[diag(
+    "PTX feature `{$feature}` is not preserved by LLVM feature translation (maps to `{$llvm_feature}`)"
+)]
+pub(crate) struct PtxVersionRemapped {
+    pub feature: String,
+    pub llvm_feature: String,
+}

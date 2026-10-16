@@ -637,6 +637,44 @@ const MIPS_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     // tidy-alphabetical-end
 ];
 
+const NVPTX_COMPUTE_CAPABILITY: Stability =
+    InternalOnly { reason: "select the compute capability with `-Ctarget-cpu`", hard_error: true };
+const NVPTX_PTX_VERSION: Stability =
+    InternalOnly { reason: "select the PTX version with `-Zptx-version`", hard_error: true };
+
+/// Returns the minimum PTX ISA feature required for the given NVPTX CPU.
+///
+/// This includes Rust's minimum supported PTX version, which may be higher
+/// than the minimum required by the GPU itself.
+pub fn minimum_ptx_version_by_cpu(cpu: &str) -> &'static str {
+    match cpu {
+        "sm_86" => "ptx71",
+        "sm_87" => "ptx74",
+        "sm_88" => "ptx90",
+        "sm_90" => "ptx78",
+        "sm_90a" => "ptx80",
+        "sm_100" => "ptx86",
+        "sm_100f" => "ptx88",
+        "sm_100a" => "ptx86",
+        "sm_101" => "ptx86",
+        "sm_101f" => "ptx88",
+        "sm_101a" => "ptx86",
+        "sm_103" => "ptx88",
+        "sm_103f" => "ptx88",
+        "sm_103a" => "ptx88",
+        "sm_110" => "ptx90",
+        "sm_110f" => "ptx90",
+        "sm_110a" => "ptx90",
+        "sm_120" => "ptx87",
+        "sm_120f" => "ptx88",
+        "sm_120a" => "ptx87",
+        "sm_121" => "ptx88",
+        "sm_121f" => "ptx88",
+        "sm_121a" => "ptx88",
+        _ => "ptx70",
+    }
+}
+
 const NVPTX_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     // tidy-alphabetical-start
     // Unsupported compute capabilities must remain `InternalOnly` until
@@ -654,36 +692,36 @@ const NVPTX_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     ("sm_60", InternalOnly { reason: "unsupported compute capability", hard_error: true }, &[]),
     ("sm_61", InternalOnly { reason: "unsupported compute capability", hard_error: true }, &[]),
     ("sm_62", InternalOnly { reason: "unsupported compute capability", hard_error: true }, &[]),
-    ("sm_70", Unstable(sym::nvptx_target_feature), &[]),
-    ("sm_72", Unstable(sym::nvptx_target_feature), &["sm_70"]),
-    ("sm_75", Unstable(sym::nvptx_target_feature), &["sm_72"]),
-    ("sm_80", Unstable(sym::nvptx_target_feature), &["sm_75"]),
-    ("sm_86", Unstable(sym::nvptx_target_feature), &["sm_80"]),
-    ("sm_87", Unstable(sym::nvptx_target_feature), &["sm_86"]),
-    ("sm_88", Unstable(sym::nvptx_target_feature), &["sm_87"]),
-    ("sm_89", Unstable(sym::nvptx_target_feature), &["sm_88"]),
-    ("sm_90", Unstable(sym::nvptx_target_feature), &["sm_89"]),
-    ("sm_90a", Unstable(sym::nvptx_target_feature), &["sm_90"]),
+    ("sm_70", NVPTX_COMPUTE_CAPABILITY, &[]),
+    ("sm_72", NVPTX_COMPUTE_CAPABILITY, &["sm_70"]),
+    ("sm_75", NVPTX_COMPUTE_CAPABILITY, &["sm_72"]),
+    ("sm_80", NVPTX_COMPUTE_CAPABILITY, &["sm_75"]),
+    ("sm_86", NVPTX_COMPUTE_CAPABILITY, &["sm_80"]),
+    ("sm_87", NVPTX_COMPUTE_CAPABILITY, &["sm_86"]),
+    ("sm_88", NVPTX_COMPUTE_CAPABILITY, &["sm_87"]),
+    ("sm_89", NVPTX_COMPUTE_CAPABILITY, &["sm_88"]),
+    ("sm_90", NVPTX_COMPUTE_CAPABILITY, &["sm_89"]),
+    ("sm_90a", NVPTX_COMPUTE_CAPABILITY, &["sm_90"]),
     // tidy-alphabetical-end
     // tidy-alphabetical-start
-    ("sm_100", Unstable(sym::nvptx_target_feature), &["sm_90"]),
-    ("sm_100a", Unstable(sym::nvptx_target_feature), &["sm_100f"]),
-    ("sm_100f", Unstable(sym::nvptx_target_feature), &["sm_100"]),
-    ("sm_101", Unstable(sym::nvptx_target_feature), &["sm_100"]),
-    ("sm_101a", Unstable(sym::nvptx_target_feature), &["sm_101f"]),
-    ("sm_101f", Unstable(sym::nvptx_target_feature), &["sm_101"]),
-    ("sm_103", Unstable(sym::nvptx_target_feature), &["sm_100"]),
-    ("sm_103a", Unstable(sym::nvptx_target_feature), &["sm_103f"]),
-    ("sm_103f", Unstable(sym::nvptx_target_feature), &["sm_103", "sm_100f"]),
-    ("sm_110", Unstable(sym::nvptx_target_feature), &["sm_103"]),
-    ("sm_110a", Unstable(sym::nvptx_target_feature), &["sm_110f"]),
-    ("sm_110f", Unstable(sym::nvptx_target_feature), &["sm_110"]),
-    ("sm_120", Unstable(sym::nvptx_target_feature), &["sm_110"]),
-    ("sm_120a", Unstable(sym::nvptx_target_feature), &["sm_120f"]),
-    ("sm_120f", Unstable(sym::nvptx_target_feature), &["sm_120"]),
-    ("sm_121", Unstable(sym::nvptx_target_feature), &["sm_120"]),
-    ("sm_121a", Unstable(sym::nvptx_target_feature), &["sm_121f"]),
-    ("sm_121f", Unstable(sym::nvptx_target_feature), &["sm_121", "sm_120f"]),
+    ("sm_100", NVPTX_COMPUTE_CAPABILITY, &["sm_90"]),
+    ("sm_100a", NVPTX_COMPUTE_CAPABILITY, &["sm_100f"]),
+    ("sm_100f", NVPTX_COMPUTE_CAPABILITY, &["sm_100"]),
+    ("sm_101", NVPTX_COMPUTE_CAPABILITY, &["sm_100"]),
+    ("sm_101a", NVPTX_COMPUTE_CAPABILITY, &["sm_101f"]),
+    ("sm_101f", NVPTX_COMPUTE_CAPABILITY, &["sm_101"]),
+    ("sm_103", NVPTX_COMPUTE_CAPABILITY, &["sm_100"]),
+    ("sm_103a", NVPTX_COMPUTE_CAPABILITY, &["sm_103f"]),
+    ("sm_103f", NVPTX_COMPUTE_CAPABILITY, &["sm_103", "sm_100f"]),
+    ("sm_110", NVPTX_COMPUTE_CAPABILITY, &["sm_103"]),
+    ("sm_110a", NVPTX_COMPUTE_CAPABILITY, &["sm_110f"]),
+    ("sm_110f", NVPTX_COMPUTE_CAPABILITY, &["sm_110"]),
+    ("sm_120", NVPTX_COMPUTE_CAPABILITY, &["sm_110"]),
+    ("sm_120a", NVPTX_COMPUTE_CAPABILITY, &["sm_120f"]),
+    ("sm_120f", NVPTX_COMPUTE_CAPABILITY, &["sm_120"]),
+    ("sm_121", NVPTX_COMPUTE_CAPABILITY, &["sm_120"]),
+    ("sm_121a", NVPTX_COMPUTE_CAPABILITY, &["sm_121f"]),
+    ("sm_121f", NVPTX_COMPUTE_CAPABILITY, &["sm_121", "sm_120f"]),
     // tidy-alphabetical-end
     // tidy-alphabetical-start
     // Unsupported PTX versions must remain `InternalOnly` until
@@ -701,30 +739,65 @@ const NVPTX_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     ("ptx63", InternalOnly { reason: "unsupported PTX version", hard_error: true }, &[]),
     ("ptx64", InternalOnly { reason: "unsupported PTX version", hard_error: true }, &[]),
     ("ptx65", InternalOnly { reason: "unsupported PTX version", hard_error: true }, &[]),
-    ("ptx70", Unstable(sym::nvptx_target_feature), &[]),
-    ("ptx71", Unstable(sym::nvptx_target_feature), &["ptx70"]),
-    ("ptx72", Unstable(sym::nvptx_target_feature), &["ptx71"]),
-    ("ptx73", Unstable(sym::nvptx_target_feature), &["ptx72"]),
-    ("ptx74", Unstable(sym::nvptx_target_feature), &["ptx73"]),
-    ("ptx75", Unstable(sym::nvptx_target_feature), &["ptx74"]),
-    ("ptx76", Unstable(sym::nvptx_target_feature), &["ptx75"]),
-    ("ptx77", Unstable(sym::nvptx_target_feature), &["ptx76"]),
-    ("ptx78", Unstable(sym::nvptx_target_feature), &["ptx77"]),
-    ("ptx80", Unstable(sym::nvptx_target_feature), &["ptx78"]),
-    ("ptx81", Unstable(sym::nvptx_target_feature), &["ptx80"]),
-    ("ptx82", Unstable(sym::nvptx_target_feature), &["ptx81"]),
-    ("ptx83", Unstable(sym::nvptx_target_feature), &["ptx82"]),
-    ("ptx84", Unstable(sym::nvptx_target_feature), &["ptx83"]),
-    ("ptx85", Unstable(sym::nvptx_target_feature), &["ptx84"]),
-    ("ptx86", Unstable(sym::nvptx_target_feature), &["ptx85"]),
-    ("ptx87", Unstable(sym::nvptx_target_feature), &["ptx86"]),
-    ("ptx88", Unstable(sym::nvptx_target_feature), &["ptx87"]),
-    ("ptx90", Unstable(sym::nvptx_target_feature), &["ptx88"]),
-    ("ptx91", Unstable(sym::nvptx_target_feature), &["ptx90"]),
-    ("ptx92", Unstable(sym::nvptx_target_feature), &["ptx91"]),
-    ("ptx93", Unstable(sym::nvptx_target_feature), &["ptx92"]),
+    ("ptx70", NVPTX_PTX_VERSION, &[]),
+    ("ptx71", NVPTX_PTX_VERSION, &["ptx70"]),
+    ("ptx72", NVPTX_PTX_VERSION, &["ptx71"]),
+    ("ptx73", NVPTX_PTX_VERSION, &["ptx72"]),
+    ("ptx74", NVPTX_PTX_VERSION, &["ptx73"]),
+    ("ptx75", NVPTX_PTX_VERSION, &["ptx74"]),
+    ("ptx76", NVPTX_PTX_VERSION, &["ptx75"]),
+    ("ptx77", NVPTX_PTX_VERSION, &["ptx76"]),
+    ("ptx78", NVPTX_PTX_VERSION, &["ptx77"]),
+    ("ptx80", NVPTX_PTX_VERSION, &["ptx78"]),
+    ("ptx81", NVPTX_PTX_VERSION, &["ptx80"]),
+    ("ptx82", NVPTX_PTX_VERSION, &["ptx81"]),
+    ("ptx83", NVPTX_PTX_VERSION, &["ptx82"]),
+    ("ptx84", NVPTX_PTX_VERSION, &["ptx83"]),
+    ("ptx85", NVPTX_PTX_VERSION, &["ptx84"]),
+    ("ptx86", NVPTX_PTX_VERSION, &["ptx85"]),
+    ("ptx87", NVPTX_PTX_VERSION, &["ptx86"]),
+    ("ptx88", NVPTX_PTX_VERSION, &["ptx87"]),
+    ("ptx90", NVPTX_PTX_VERSION, &["ptx88"]),
+    ("ptx91", NVPTX_PTX_VERSION, &["ptx90"]),
+    ("ptx92", NVPTX_PTX_VERSION, &["ptx91"]),
+    ("ptx93", NVPTX_PTX_VERSION, &["ptx92"]),
     // tidy-alphabetical-end
 ];
+
+/// All known NVPTX features, including obsolete versions (which cannot be selected).
+pub fn nvptx_isa_features() -> impl Iterator<Item = &'static str> {
+    NVPTX_FEATURES.iter().map(|(feature, _, _)| *feature)
+}
+
+/// Convert an NVPTX feature name into its dotted version, retaining variants such as `9.0a`.
+pub fn nvptx_isa_version(feature: &str) -> Option<String> {
+    let version = feature.strip_prefix("sm_").or_else(|| feature.strip_prefix("ptx"))?;
+    let digits = version.bytes().take_while(u8::is_ascii_digit).count();
+    if digits < 2 {
+        return None;
+    }
+    let (number, suffix) = version.split_at(digits);
+    let (major, minor) = number.split_at(number.len() - 1);
+    Some(format!("{major}.{minor}{suffix}"))
+}
+
+/// Resolve a supported PTX version provided via `-Zptx-version`.
+pub fn nvptx_ptx_feature(version: &str) -> Option<&'static str> {
+    NVPTX_FEATURES.iter().find_map(|&(feature, stability, _)| {
+        if feature.starts_with("ptx")
+            && nvptx_isa_version(feature).as_deref() == Some(version)
+            && matches!(
+                stability,
+                InternalOnly { reason, hard_error: true }
+                    if reason == "select the PTX version with `-Zptx-version`"
+            )
+        {
+            Some(feature)
+        } else {
+            None
+        }
+    })
+}
 
 static RISCV_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     // tidy-alphabetical-start
@@ -1575,52 +1648,6 @@ impl Target {
                 FeatureConstraints { required: &["windowed", "exception"], incompatible: &[] }
             }
             _ => NOTHING,
-        }
-    }
-
-    /// Returns additional target features to enable by default for the given CPU.
-    ///
-    /// These features supplement the defaults provided by the codegen backend to satisfy
-    /// Rust-specific target requirements. They are applied before target specification
-    /// features and command-line options, which may override them.
-    pub fn additional_features_for_cpu(&self, cpu: &str) -> &'static [&'static str] {
-        match self.arch {
-            // Starting with LLVM 22, the NVPTX backend still infers the minimum
-            // required PTX version from the selected CPU when none is selected
-            // explicitly, but no longer reflects that in the enabled subtarget
-            // features. If a PTX version below the required minimum is selected
-            // explicitly, LLVM errors.
-            // To keep cfg evaluation consistent and avoid LLVM errors, always
-            // select an explicit PTX version: whichever is higher between
-            //  - Rust's minimum required PTX version, and
-            //  - the CPU's minimum required PTX version.
-            Arch::Nvptx64 => match cpu {
-                "sm_86" => &["ptx71"],
-                "sm_87" => &["ptx74"],
-                "sm_88" => &["ptx90"],
-                "sm_90" => &["ptx78"],
-                "sm_90a" => &["ptx80"],
-                "sm_100" => &["ptx86"],
-                "sm_100f" => &["ptx88"],
-                "sm_100a" => &["ptx86"],
-                "sm_101" => &["ptx86"],
-                "sm_101f" => &["ptx88"],
-                "sm_101a" => &["ptx86"],
-                "sm_103" => &["ptx88"],
-                "sm_103f" => &["ptx88"],
-                "sm_103a" => &["ptx88"],
-                "sm_110" => &["ptx90"],
-                "sm_110f" => &["ptx90"],
-                "sm_110a" => &["ptx90"],
-                "sm_120" => &["ptx87"],
-                "sm_120f" => &["ptx88"],
-                "sm_120a" => &["ptx87"],
-                "sm_121" => &["ptx88"],
-                "sm_121f" => &["ptx88"],
-                "sm_121a" => &["ptx88"],
-                _ => &["ptx70"],
-            },
-            _ => &[],
         }
     }
 }

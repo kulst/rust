@@ -146,6 +146,8 @@ pub(crate) fn disallow_cfgs(sess: &Session, user_cfgs: &Cfg) {
             | (sym::target_pointer_width, Some(_))
             | (sym::target_vendor, None | Some(_))
             | (sym::target_has_atomic, Some(_))
+            | (sym::target_has_compute_capability, None | Some(_))
+            | (sym::target_has_ptx_version, None | Some(_))
             | (sym::target_has_threads, None | Some(_))
             | (sym::target_has_atomic_primitive_alignment, Some(_))
             | (sym::target_has_atomic_load_store, Some(_))
@@ -485,6 +487,16 @@ impl CheckCfg {
         ];
         for sym in [sym::target_has_atomic, sym::target_has_atomic_load_store] {
             ins!(sym, no_values).extend(atomic_values);
+        }
+        for (cfg_name, prefix) in
+            [(sym::target_has_compute_capability, "sm_"), (sym::target_has_ptx_version, "ptx")]
+        {
+            ins!(cfg_name, empty_values).extend(
+                rustc_target::target_features::nvptx_isa_features()
+                    .filter(|feature| feature.starts_with(prefix))
+                    .filter_map(rustc_target::target_features::nvptx_isa_version)
+                    .map(|version| Symbol::intern(&version)),
+            );
         }
         ins!(sym::target_has_atomic_primitive_alignment, empty_values).extend(atomic_values);
 

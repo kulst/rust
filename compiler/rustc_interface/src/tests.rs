@@ -882,6 +882,7 @@ fn test_unstable_options_tracking_hash() {
     tracked!(polonius, Polonius::Legacy);
     tracked!(precise_enum_drop_elaboration, false);
     tracked!(profiler_runtime, "abc".to_string());
+    tracked!(ptx_version, Some("9.0".into()));
     tracked!(reg_struct_return, true);
     tracked!(regparm, Some(3));
     tracked!(relax_elf_relocations, Some(true));

@@ -1,0 +1,6 @@
+error: target feature `sm_90` cannot be enabled with `-Ctarget-feature`: select the compute capability with `-Ctarget-cpu`
+
+error: target feature `ptx90` cannot be enabled with `-Ctarget-feature`: select the PTX version with `-Zptx-version`
+
+error: aborting due to 2 previous errors
+
